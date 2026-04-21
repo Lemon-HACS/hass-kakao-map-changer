@@ -16,7 +16,7 @@ from homeassistant.components.http import StaticPathConfig
 from .const import DOMAIN, CONF_API_KEY
 
 FRONTEND_URL = "/kakao_map_static"
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 PANEL_JS = f"{FRONTEND_URL}/kakao-map-panel.js?v={VERSION}"
 OVERRIDE_JS = f"{FRONTEND_URL}/kakao-map-override.js?v={VERSION}"
 

@@ -77,21 +77,18 @@ class KakaoMapPanel extends HTMLElement {
     this.appendChild(iframe);
     this._iframe = iframe;
 
-    await new Promise(function (r) {
-      iframe.addEventListener("load", r, { once: true });
-    });
+    await new Promise((r) => iframe.addEventListener("load", r, { once: true }));
 
     var doc = iframe.contentDocument;
+    var apiKey = this._apiKey;
 
-    await new Promise(function (resolve, reject) {
+    await new Promise((resolve, reject) => {
       var s = doc.createElement("script");
       s.src =
         "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" +
-        this._apiKey +
+        apiKey +
         "&autoload=false&libraries=services";
-      s.onload = function () {
-        iframe.contentWindow.kakao.maps.load(resolve);
-      };
+      s.onload = () => iframe.contentWindow.kakao.maps.load(resolve);
       s.onerror = reject;
       doc.head.appendChild(s);
     });
