@@ -118,6 +118,60 @@ class KakaoMapPanel extends HTMLElement {
       }
     });
 
+    // 장소 검색
+    var ps = new (iframe.contentWindow.kakao.maps.services.Places)();
+    var searchInput = doc.getElementById("search-input");
+    var searchBtn = doc.getElementById("search-btn");
+    var resultsEl = doc.getElementById("search-results");
+    var searchMarker = null;
+
+    function clearSearchMarker() {
+      if (searchMarker) { searchMarker.setMap(null); searchMarker = null; }
+    }
+
+    function doSearch() {
+      var query = searchInput.value.trim();
+      if (!query) return;
+      ps.keywordSearch(query, function (data, status) {
+        resultsEl.innerHTML = "";
+        if (status !== iframe.contentWindow.kakao.maps.services.Status.OK || !data.length) {
+          resultsEl.innerHTML = '<div class="result-item"><span class="result-addr">검색 결과가 없습니다.</span></div>';
+          resultsEl.style.display = "block";
+          return;
+        }
+        for (var i = 0; i < data.length; i++) {
+          (function (place) {
+            var item = doc.createElement("div");
+            item.className = "result-item";
+            item.innerHTML =
+              '<div class="result-name">' + place.place_name + "</div>" +
+              '<div class="result-addr">' + (place.road_address_name || place.address_name) + "</div>" +
+              (place.category_group_name ? '<div class="result-category">' + place.category_group_name + "</div>" : "") +
+              '<a class="result-link" href="https://place.map.kakao.com/' + place.id + '" target="_blank">카카오맵에서 보기 →</a>';
+            item.addEventListener("click", function (e) {
+              if (e.target.classList.contains("result-link")) return;
+              var pos = new K.LatLng(place.y, place.x);
+              map.setCenter(pos);
+              map.setLevel(3);
+              clearSearchMarker();
+              searchMarker = new K.Marker({ position: pos, map: map });
+              resultsEl.style.display = "none";
+            });
+            resultsEl.appendChild(item);
+          })(data[i]);
+        }
+        var closeBtn = doc.createElement("div");
+        closeBtn.className = "result-close";
+        closeBtn.textContent = "닫기";
+        closeBtn.addEventListener("click", function () { resultsEl.style.display = "none"; });
+        resultsEl.appendChild(closeBtn);
+        resultsEl.style.display = "block";
+      });
+    }
+
+    searchBtn.addEventListener("click", doSearch);
+    searchInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doSearch(); });
+
     this._K = K;
     this._doc = doc;
     this._map = map;
