@@ -101,10 +101,9 @@ class KakaoMapPanel extends HTMLElement {
         '<div style="font-size:48px">🔑</div>' +
         '<div style="font-size:18px;font-weight:700">카카오맵 API 키 오류</div>' +
         '<div style="font-size:14px;color:#666;text-align:center;max-width:400px;line-height:1.6">' +
-        "API 키가 유효하지 않거나, 현재 도메인이 허용 목록에 없습니다.<br>" +
-        '<a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 ' +
-        "앱 > 플랫폼 > Web에 현재 도메인을 추가하세요.<br>" +
-        '<code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;font-size:13px">' +
+        '<a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 도메인을 등록하세요:<br>' +
+        "내 앱 → 플랫폼 → Web → <b>JavaScript SDK 도메인</b><br>" +
+        '추가할 주소: <code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;font-size:13px">' +
         location.origin + "</code></div></div>";
       return;
     }
@@ -144,10 +143,10 @@ class KakaoMapPanel extends HTMLElement {
     var _domainOk = null;
     var _domainErrorHtml =
       '<div class="result-item" style="line-height:1.6">' +
-      '<div class="result-name">⚠️ API 키 오류</div>' +
-      '<div class="result-addr">현재 도메인이 허용 목록에 없습니다.</div>' +
-      '<div class="result-addr"><a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 Web 도메인에 추가하세요:</div>' +
-      '<div class="result-addr"><code style="background:#f5f5f5;padding:1px 6px;border-radius:3px">' + location.origin + "</code></div></div>";
+      '<div class="result-name">⚠️ 도메인 미등록</div>' +
+      '<div class="result-addr" style="margin-top:6px"><a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 아래 경로로 도메인을 추가하세요:</div>' +
+      '<div class="result-addr" style="margin-top:4px">내 앱 → 플랫폼 → Web → <b>JavaScript SDK 도메인</b></div>' +
+      '<div class="result-addr" style="margin-top:4px">추가할 주소: <code style="background:#f5f5f5;padding:1px 6px;border-radius:3px">' + location.origin + "</code></div></div>";
 
     // "서울"은 항상 결과가 있으므로, 실패 시 도메인 미등록 확정
     ps.keywordSearch("서울", function (data, status) {

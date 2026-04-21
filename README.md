@@ -31,10 +31,10 @@ Home Assistant의 기본 Leaflet 지도를 [카카오맵](https://map.kakao.com)
 
 카카오 JavaScript API 키는 허용된 도메인에서만 동작합니다. [카카오 개발자 콘솔](https://developers.kakao.com/console/app)에서:
 
-1. 앱 선택 > **플랫폼** > **Web** > **사이트 도메인** 추가
-2. Home Assistant 접속 주소를 입력 (예: `https://hass.example.com`)
+1. **내 앱** > 앱 선택 > **플랫폼** > **Web**
+2. **JavaScript SDK 도메인**에 Home Assistant 접속 주소를 추가 (예: `https://hass.example.com`)
 
-등록하지 않으면 지도 화면에 API 키 오류 안내가 표시됩니다.
+등록하지 않으면 지도 화면에 도메인 등록 안내가 표시됩니다.
 
 ## 작동 원리
 
