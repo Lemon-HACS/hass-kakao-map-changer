@@ -82,6 +82,41 @@ class KakaoMapPanel extends HTMLElement {
     var doc = iframe.contentDocument;
     var apiKey = this._apiKey;
 
+    // SDK 로드 전에 XHR/fetch 인터셉트 (SDK가 참조를 캐시하므로 먼저 패치)
+    var _apiDomainError = false;
+    var _domainErrorHtml =
+      '<div class="result-item" style="line-height:1.6">' +
+      '<div class="result-name">⚠️ API 키 오류</div>' +
+      '<div class="result-addr">현재 도메인이 허용 목록에 없습니다.</div>' +
+      '<div class="result-addr"><a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 Web 도메인에 추가하세요:</div>' +
+      '<div class="result-addr"><code style="background:#f5f5f5;padding:1px 6px;border-radius:3px">' + location.origin + "</code></div></div>";
+
+    var _origOpen = iframe.contentWindow.XMLHttpRequest.prototype.open;
+    iframe.contentWindow.XMLHttpRequest.prototype.open = function () {
+      this._isKakao = String(arguments[1]).indexOf("dapi.kakao.com") !== -1;
+      return _origOpen.apply(this, arguments);
+    };
+    var _origSend = iframe.contentWindow.XMLHttpRequest.prototype.send;
+    iframe.contentWindow.XMLHttpRequest.prototype.send = function () {
+      if (this._isKakao) {
+        this.addEventListener("load", function () {
+          if (this.status === 401) _apiDomainError = true;
+        });
+      }
+      return _origSend.apply(this, arguments);
+    };
+    if (iframe.contentWindow.fetch) {
+      var _origFetch = iframe.contentWindow.fetch;
+      iframe.contentWindow.fetch = function (url) {
+        return _origFetch.apply(iframe.contentWindow, arguments).then(function (resp) {
+          if (resp.status === 401 && String(url).indexOf("dapi.kakao.com") !== -1) {
+            _apiDomainError = true;
+          }
+          return resp;
+        });
+      };
+    }
+
     try {
       await new Promise((resolve, reject) => {
         var s = doc.createElement("script");
@@ -133,30 +168,6 @@ class KakaoMapPanel extends HTMLElement {
         trafficBtn.classList.remove("active");
       }
     });
-
-    // 401 감지 (SDK가 ERROR 상태를 전달하지 않으므로 XHR/fetch 인터셉트)
-    var _apiDomainError = false;
-    var _domainErrorHtml =
-      '<div class="result-item" style="line-height:1.6">' +
-      '<div class="result-name">⚠️ API 키 오류</div>' +
-      '<div class="result-addr">현재 도메인이 허용 목록에 없습니다.</div>' +
-      '<div class="result-addr"><a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 Web 도메인에 추가하세요:</div>' +
-      '<div class="result-addr"><code style="background:#f5f5f5;padding:1px 6px;border-radius:3px">' + location.origin + "</code></div></div>";
-
-    var _origOpen = iframe.contentWindow.XMLHttpRequest.prototype.open;
-    iframe.contentWindow.XMLHttpRequest.prototype.open = function () {
-      this._isKakao = String(arguments[1]).indexOf("dapi.kakao.com") !== -1;
-      return _origOpen.apply(this, arguments);
-    };
-    var _origSend = iframe.contentWindow.XMLHttpRequest.prototype.send;
-    iframe.contentWindow.XMLHttpRequest.prototype.send = function () {
-      if (this._isKakao) {
-        this.addEventListener("load", function () {
-          if (this.status === 401) _apiDomainError = true;
-        });
-      }
-      return _origSend.apply(this, arguments);
-    };
 
     // 장소 검색
     var ps = new (iframe.contentWindow.kakao.maps.services.Places)();
