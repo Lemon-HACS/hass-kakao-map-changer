@@ -54,17 +54,10 @@ class KakaoMapPanel extends HTMLElement {
 
     const iframe = document.createElement("iframe");
     iframe.style.cssText = "width:100%;height:100%;border:none;";
-    iframe.srcdoc =
-      '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-      '<base href="' +
-      location.origin +
-      '">' +
-      "<style>*{margin:0;padding:0}html,body,#map{width:100%;height:100%}</style>" +
-      '</head><body><div id="map"></div></body></html>';
+    iframe.src = "/kakao_map_static/kakao-map-inner.html";
     this.appendChild(iframe);
     this._iframe = iframe;
 
-    // srcdoc 로드 완료 대기
     await new Promise((r) =>
       iframe.addEventListener("load", r, { once: true })
     );
