@@ -104,6 +104,20 @@ class KakaoMapPanel extends HTMLElement {
     map.addControl(new K.MapTypeControl(), K.ControlPosition.TOPRIGHT);
     map.addControl(new K.ZoomControl(), K.ControlPosition.RIGHT);
 
+    // 교통 정보 토글
+    var trafficOn = false;
+    var trafficBtn = doc.getElementById("traffic-btn");
+    trafficBtn.addEventListener("click", function () {
+      trafficOn = !trafficOn;
+      if (trafficOn) {
+        map.addOverlayMapTypeId(K.MapTypeId.TRAFFIC);
+        trafficBtn.classList.add("active");
+      } else {
+        map.removeOverlayMapTypeId(K.MapTypeId.TRAFFIC);
+        trafficBtn.classList.remove("active");
+      }
+    });
+
     this._K = K;
     this._doc = doc;
     this._map = map;
