@@ -1,7 +1,6 @@
 class KakaoMapPanel extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
     this._markers = new Map();
     this._entityLabels = new Map();
     this._circles = new Map();
@@ -46,21 +45,20 @@ class KakaoMapPanel extends HTMLElement {
   async _initPanel() {
     this._initialized = true;
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host { display:block; height:100%; width:100%; }
-        #map { width:100%; height:100%; }
-      </style>
-      <div id="map"></div>
-    `;
+    this.style.display = "block";
+    this.style.height = "100%";
+    this.style.width = "100%";
+
+    this._container = document.createElement("div");
+    this._container.style.cssText = "width:100%;height:100%;";
+    this.appendChild(this._container);
 
     await this._loadSDK();
 
-    const container = this.shadowRoot.getElementById("map");
     const lat = this._hass?.config?.latitude || 37.5665;
     const lng = this._hass?.config?.longitude || 126.978;
 
-    this._map = new kakao.maps.Map(container, {
+    this._map = new kakao.maps.Map(this._container, {
       center: new kakao.maps.LatLng(lat, lng),
       level: 3,
     });
@@ -75,14 +73,11 @@ class KakaoMapPanel extends HTMLElement {
     );
 
     new ResizeObserver(() => {
-      if (this._map) {
-        this._map.relayout();
-      }
-    }).observe(container);
+      if (this._map) this._map.relayout();
+    }).observe(this._container);
 
     this._mapReady = true;
 
-    // 초기 렌더 후 relayout으로 확실히 그리기
     setTimeout(() => {
       if (this._map) {
         this._map.relayout();
@@ -240,7 +235,6 @@ class KakaoMapPanel extends HTMLElement {
     this._removeStale(this._zoneMarkers, activeZones);
     this._removeStale(this._zoneLabels, activeZones);
 
-    // Zone과 entity 모두 포함하여 bounds 설정
     if (hasContent) {
       this._map.setBounds(bounds);
     }
