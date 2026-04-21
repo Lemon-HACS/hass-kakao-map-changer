@@ -134,6 +134,14 @@ class KakaoMapPanel extends HTMLElement {
     var activeTrackers = new Set();
     var activeZones = new Set();
 
+    // person 엔티티의 source인 device_tracker는 중복이므로 건너뛰기
+    var personSources = new Set();
+    for (var [pid, pstate] of Object.entries(states)) {
+      if (pid.startsWith("person.") && pstate.attributes.source) {
+        personSources.add(pstate.attributes.source);
+      }
+    }
+
     // --- Zones (circle + label only, no pin marker) ---
     for (var [id, state] of Object.entries(states)) {
       if (!id.startsWith("zone.")) continue;
@@ -200,6 +208,7 @@ class KakaoMapPanel extends HTMLElement {
 
     // --- Trackers (person + device_tracker) ---
     for (var [id2, state2] of Object.entries(states)) {
+      if (personSources.has(id2)) continue;
       if (!id2.startsWith("device_tracker.") && !id2.startsWith("person."))
         continue;
       var a2 = state2.attributes;
