@@ -33,7 +33,7 @@ Home Assistant의 기본 Leaflet 지도를 [카카오맵](https://map.kakao.com)
 
 1. **패널 교체**: `async_remove_panel`로 기본 Map 패널을 제거하고, `async_register_built_in_panel`로 카카오맵 커스텀 패널을 등록
 2. **iframe 격리**: HA의 scoped-custom-element-registry 폴리필이 Kakao Maps SDK의 DOM 조작과 충돌하므로, iframe 내부에서 SDK를 로드하여 클린한 DOM 컨텍스트에서 동작
-3. **엔티티 렌더링**: `hass.states`에서 `person`/`device_tracker`/`zone` 엔티티를 읽어 마커와 원을 표시. `person`의 source인 `device_tracker`는 중복 방지를 위해 건너뜀
+3. **엔티티 렌더링**: `hass.states`에서 `person`/`device_tracker`/`zone` 엔티티를 읽어 마커와 원을 표시. `person` 엔티티와 그 source인 `device_tracker`는 같은 좌표를 공유하므로, 마커가 겹치지 않도록 `device_tracker`는 건너뛰고 프로필 사진이 있는 `person`만 표시
 
 ## 제한사항
 
