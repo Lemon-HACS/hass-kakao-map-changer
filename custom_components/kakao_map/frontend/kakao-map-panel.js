@@ -82,16 +82,32 @@ class KakaoMapPanel extends HTMLElement {
     var doc = iframe.contentDocument;
     var apiKey = this._apiKey;
 
-    await new Promise((resolve, reject) => {
-      var s = doc.createElement("script");
-      s.src =
-        "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" +
-        apiKey +
-        "&autoload=false&libraries=services";
-      s.onload = () => iframe.contentWindow.kakao.maps.load(resolve);
-      s.onerror = reject;
-      doc.head.appendChild(s);
-    });
+    try {
+      await new Promise((resolve, reject) => {
+        var s = doc.createElement("script");
+        s.src =
+          "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" +
+          apiKey +
+          "&autoload=false&libraries=services";
+        s.onload = () => {
+          iframe.contentWindow.kakao.maps.load(resolve);
+        };
+        s.onerror = () => reject(new Error("SDK 로드 실패"));
+        doc.head.appendChild(s);
+      });
+    } catch (e) {
+      doc.getElementById("map").innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;font-family:sans-serif;color:#333">' +
+        '<div style="font-size:48px">🔑</div>' +
+        '<div style="font-size:18px;font-weight:700">카카오맵 API 키 오류</div>' +
+        '<div style="font-size:14px;color:#666;text-align:center;max-width:400px;line-height:1.6">' +
+        "API 키가 유효하지 않거나, 현재 도메인이 허용 목록에 없습니다.<br>" +
+        '<a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 ' +
+        "앱 > 플랫폼 > Web에 현재 도메인을 추가하세요.<br>" +
+        '<code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;font-size:13px">' +
+        location.origin + "</code></div></div>";
+      return;
+    }
 
     var K = iframe.contentWindow.kakao.maps;
     var lat = this._hass?.config?.latitude || 37.5665;
