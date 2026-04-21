@@ -1,3 +1,23 @@
+// MDI SVG paths
+var MDI = {
+  home: "M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z",
+  person:
+    "M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z",
+  map_marker: "M12,2C8.13,2 5,5.13 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.13 15.87,2 12,2Z",
+  briefcase:
+    "M10,2H14A2,2 0 0,1 16,4V6H20A2,2 0 0,1 22,8V19A2,2 0 0,1 20,21H4C2.89,21 2,20.1 2,19V8C2,6.89 2.89,6 4,6H8V4C8,2.89 8.89,2 10,2M14,6V4H10V6H14Z",
+  store:
+    "M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z",
+  school:
+    "M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z",
+};
+
+function mdiPath(icon) {
+  if (!icon) return MDI.map_marker;
+  var key = icon.replace("mdi:", "").replace(/-/g, "_");
+  return MDI[key] || MDI.map_marker;
+}
+
 class KakaoMapPanel extends HTMLElement {
   constructor() {
     super();
@@ -5,7 +25,6 @@ class KakaoMapPanel extends HTMLElement {
     this._markers = new Map();
     this._entityLabels = new Map();
     this._circles = new Map();
-    this._zoneMarkers = new Map();
     this._zoneLabels = new Map();
   }
 
@@ -25,7 +44,7 @@ class KakaoMapPanel extends HTMLElement {
   }
 
   set hass(hass) {
-    const prev = this._hass;
+    var prev = this._hass;
     this._hass = hass;
     if (this._ready && (!prev || this._hasChanges(prev, hass))) {
       this._updateMap();
@@ -37,7 +56,7 @@ class KakaoMapPanel extends HTMLElement {
   }
 
   _hasChanges(prev, next) {
-    for (const id of Object.keys(next.states)) {
+    for (var id of Object.keys(next.states)) {
       if (
         (id.startsWith("device_tracker.") ||
           id.startsWith("person.") ||
@@ -52,35 +71,36 @@ class KakaoMapPanel extends HTMLElement {
   async _init() {
     this.style.cssText = "display:block;width:100%;height:100%;";
 
-    const iframe = document.createElement("iframe");
+    var iframe = document.createElement("iframe");
     iframe.style.cssText = "width:100%;height:100%;border:none;";
     iframe.src = "/kakao_map_static/kakao-map-inner.html";
     this.appendChild(iframe);
     this._iframe = iframe;
 
-    await new Promise((r) =>
-      iframe.addEventListener("load", r, { once: true })
-    );
+    await new Promise(function (r) {
+      iframe.addEventListener("load", r, { once: true });
+    });
 
-    const doc = iframe.contentDocument;
+    var doc = iframe.contentDocument;
 
-    // iframe 내부에서 Kakao SDK 로드
-    await new Promise((resolve, reject) => {
-      const s = doc.createElement("script");
+    await new Promise(function (resolve, reject) {
+      var s = doc.createElement("script");
       s.src =
         "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" +
         this._apiKey +
         "&autoload=false&libraries=services";
-      s.onload = () => iframe.contentWindow.kakao.maps.load(resolve);
+      s.onload = function () {
+        iframe.contentWindow.kakao.maps.load(resolve);
+      };
       s.onerror = reject;
       doc.head.appendChild(s);
     });
 
-    const K = iframe.contentWindow.kakao.maps;
-    const lat = this._hass?.config?.latitude || 37.5665;
-    const lng = this._hass?.config?.longitude || 126.978;
+    var K = iframe.contentWindow.kakao.maps;
+    var lat = this._hass?.config?.latitude || 37.5665;
+    var lng = this._hass?.config?.longitude || 126.978;
 
-    const map = new K.Map(doc.getElementById("map"), {
+    var map = new K.Map(doc.getElementById("map"), {
       center: new K.LatLng(lat, lng),
       level: 3,
     });
@@ -92,50 +112,53 @@ class KakaoMapPanel extends HTMLElement {
     this._map = map;
     this._ready = true;
 
-    new ResizeObserver(() => {
-      if (this._map) this._map.relayout();
+    var self = this;
+    new ResizeObserver(function () {
+      if (self._map) self._map.relayout();
     }).observe(iframe);
 
-    setTimeout(() => {
+    setTimeout(function () {
       map.relayout();
-      if (this._hass) this._updateMap();
+      if (self._hass) self._updateMap();
     }, 100);
 
     if (this._hass) this._updateMap();
   }
 
   _updateMap() {
-    const K = this._K;
-    const doc = this._doc;
-    const map = this._map;
+    var K = this._K;
+    var doc = this._doc;
+    var map = this._map;
     if (!map || !this._hass) return;
 
-    const states = this._hass.states;
-    const bounds = new K.LatLngBounds();
-    let hasContent = false;
-    const activeTrackers = new Set();
-    const activeZones = new Set();
+    var states = this._hass.states;
+    var bounds = new K.LatLngBounds();
+    var hasContent = false;
+    var activeTrackers = new Set();
+    var activeZones = new Set();
 
-    // --- Zones ---
-    for (const [id, state] of Object.entries(states)) {
+    // --- Zones (circle + label only, no pin marker) ---
+    for (var [id, state] of Object.entries(states)) {
       if (!id.startsWith("zone.")) continue;
-      const a = state.attributes;
+      var a = state.attributes;
       if (a.latitude == null || a.longitude == null) continue;
 
       activeZones.add(id);
       hasContent = true;
-      const center = new K.LatLng(a.latitude, a.longitude);
+      var center = new K.LatLng(a.latitude, a.longitude);
       bounds.extend(center);
-      const isHome = id === "zone.home";
-      const color = isHome ? "#FF6B35" : "#448aff";
+      var isHome = id === "zone.home";
+      var color = isHome ? "#FF6B35" : "#448aff";
+      var icon = a.icon || (isHome ? "mdi:home" : "mdi:map-marker");
 
-      let circle = this._circles.get(id);
+      // Circle
+      var circle = this._circles.get(id);
       if (circle) {
         circle.setPosition(center);
         circle.setRadius(a.radius || 100);
       } else {
         circle = new K.Circle({
-          center,
+          center: center,
           radius: a.radius || 100,
           strokeWeight: 2,
           strokeColor: color,
@@ -143,122 +166,142 @@ class KakaoMapPanel extends HTMLElement {
           strokeStyle: "solid",
           fillColor: color,
           fillOpacity: 0.15,
-          map,
+          map: map,
         });
         this._circles.set(id, circle);
       }
 
-      let zm = this._zoneMarkers.get(id);
-      if (zm) {
-        zm.setPosition(center);
-      } else {
-        zm = new K.Marker({ position: center, map });
-        this._zoneMarkers.set(id, zm);
-      }
-
-      const name = a.friendly_name || id.split(".")[1];
-      let label = this._zoneLabels.get(id);
+      // Zone label (icon + name)
+      var name = a.friendly_name || id.split(".")[1];
+      var label = this._zoneLabels.get(id);
       if (!label) {
-        const el = doc.createElement("div");
+        var el = doc.createElement("div");
         el.style.cssText =
-          "background:" +
+          "display:flex;align-items:center;gap:4px;background:" +
           color +
-          ";color:#fff;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;";
-        el.textContent = name;
+          ";color:#fff;padding:4px 10px;border-radius:14px;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.25);";
+        el.innerHTML =
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="' +
+          mdiPath(icon) +
+          '"/></svg><span>' +
+          this._escHtml(name) +
+          "</span>";
         label = new K.CustomOverlay({
           position: center,
           content: el,
-          yAnchor: -0.3,
-          map,
+          yAnchor: 0.5,
+          map: map,
         });
         label._el = el;
+        label._span = el.querySelector("span");
         this._zoneLabels.set(id, label);
       } else {
         label.setPosition(center);
-        label._el.textContent = name;
+        label._span.textContent = name;
       }
     }
 
-    // --- Trackers ---
-    for (const [id, state] of Object.entries(states)) {
-      if (!id.startsWith("device_tracker.") && !id.startsWith("person."))
+    // --- Trackers (person + device_tracker) ---
+    for (var [id2, state2] of Object.entries(states)) {
+      if (!id2.startsWith("device_tracker.") && !id2.startsWith("person."))
         continue;
-      const a = state.attributes;
-      if (a.latitude == null || a.longitude == null) continue;
+      var a2 = state2.attributes;
+      if (a2.latitude == null || a2.longitude == null) continue;
 
-      activeTrackers.add(id);
+      activeTrackers.add(id2);
       hasContent = true;
-      const pos = new K.LatLng(a.latitude, a.longitude);
+      var pos = new K.LatLng(a2.latitude, a2.longitude);
       bounds.extend(pos);
 
-      let marker = this._markers.get(id);
+      var marker = this._markers.get(id2);
       if (marker) {
         marker.setPosition(pos);
       } else {
-        if (a.entity_picture) {
-          const wrap = doc.createElement("div");
+        if (a2.entity_picture) {
+          // Avatar marker
+          var wrap = doc.createElement("div");
           wrap.style.cssText =
             "width:40px;height:40px;border-radius:50%;border:3px solid #4285f4;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.3);background:#fff;";
-          const img = doc.createElement("img");
-          img.src = a.entity_picture;
+          var img = doc.createElement("img");
+          img.src = a2.entity_picture;
           img.style.cssText = "width:100%;height:100%;object-fit:cover;";
           img.onerror = function () {
-            img.style.display = "none";
-            wrap.textContent = "\u{1F4CD}";
-            wrap.style.textAlign = "center";
-            wrap.style.lineHeight = "40px";
-            wrap.style.fontSize = "20px";
+            this.style.display = "none";
+            this.parentNode.innerHTML =
+              '<svg viewBox="0 0 24 24" width="24" height="24" fill="#4285f4" style="margin:8px"><path d="' +
+              MDI.person +
+              '"/></svg>';
           };
           wrap.appendChild(img);
           marker = new K.CustomOverlay({
             position: pos,
             content: wrap,
             yAnchor: 0.5,
-            map,
+            map: map,
           });
         } else {
-          marker = new K.Marker({ position: pos, map });
+          // SVG icon marker
+          var iconEl = doc.createElement("div");
+          iconEl.style.cssText =
+            "width:36px;height:36px;border-radius:50%;background:#4285f4;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff;";
+          iconEl.innerHTML =
+            '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="' +
+            MDI.person +
+            '"/></svg>';
+          marker = new K.CustomOverlay({
+            position: pos,
+            content: iconEl,
+            yAnchor: 0.5,
+            map: map,
+          });
         }
-        this._markers.set(id, marker);
+        this._markers.set(id2, marker);
       }
 
-      const name = a.friendly_name || id.split(".")[1];
-      let nameLabel = this._entityLabels.get(id);
+      // Name label
+      var ename = a2.friendly_name || id2.split(".")[1];
+      var nameLabel = this._entityLabels.get(id2);
       if (!nameLabel) {
-        const el = doc.createElement("div");
-        el.style.cssText =
+        var nel = doc.createElement("div");
+        nel.style.cssText =
           "background:#fff;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:none;";
-        el.textContent = name;
+        nel.textContent = ename;
         nameLabel = new K.CustomOverlay({
           position: pos,
-          content: el,
+          content: nel,
           yAnchor: -0.5,
-          map,
+          map: map,
         });
-        nameLabel._el = el;
-        this._entityLabels.set(id, nameLabel);
+        nameLabel._el = nel;
+        this._entityLabels.set(id2, nameLabel);
       } else {
         nameLabel.setPosition(pos);
-        nameLabel._el.textContent = name;
+        nameLabel._el.textContent = ename;
       }
     }
 
     this._removeStale(this._markers, activeTrackers);
     this._removeStale(this._entityLabels, activeTrackers);
     this._removeStale(this._circles, activeZones);
-    this._removeStale(this._zoneMarkers, activeZones);
     this._removeStale(this._zoneLabels, activeZones);
 
     if (hasContent) map.setBounds(bounds);
   }
 
   _removeStale(map, activeSet) {
-    for (const [id, obj] of map) {
+    for (var [id, obj] of map) {
       if (!activeSet.has(id)) {
         obj.setMap(null);
         map.delete(id);
       }
     }
+  }
+
+  _escHtml(s) {
+    return s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
   }
 }
 
