@@ -134,6 +134,30 @@ class KakaoMapPanel extends HTMLElement {
       }
     });
 
+    // 401 감지 (SDK가 ERROR 상태를 전달하지 않으므로 XHR/fetch 인터셉트)
+    var _apiDomainError = false;
+    var _domainErrorHtml =
+      '<div class="result-item" style="line-height:1.6">' +
+      '<div class="result-name">⚠️ API 키 오류</div>' +
+      '<div class="result-addr">현재 도메인이 허용 목록에 없습니다.</div>' +
+      '<div class="result-addr"><a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 Web 도메인에 추가하세요:</div>' +
+      '<div class="result-addr"><code style="background:#f5f5f5;padding:1px 6px;border-radius:3px">' + location.origin + "</code></div></div>";
+
+    var _origOpen = iframe.contentWindow.XMLHttpRequest.prototype.open;
+    iframe.contentWindow.XMLHttpRequest.prototype.open = function () {
+      this._isKakao = String(arguments[1]).indexOf("dapi.kakao.com") !== -1;
+      return _origOpen.apply(this, arguments);
+    };
+    var _origSend = iframe.contentWindow.XMLHttpRequest.prototype.send;
+    iframe.contentWindow.XMLHttpRequest.prototype.send = function () {
+      if (this._isKakao) {
+        this.addEventListener("load", function () {
+          if (this.status === 401) _apiDomainError = true;
+        });
+      }
+      return _origSend.apply(this, arguments);
+    };
+
     // 장소 검색
     var ps = new (iframe.contentWindow.kakao.maps.services.Places)();
     var searchInput = doc.getElementById("search-input");
@@ -148,20 +172,16 @@ class KakaoMapPanel extends HTMLElement {
     function doSearch() {
       var query = searchInput.value.trim();
       if (!query) return;
+      _apiDomainError = false;
       ps.keywordSearch(query, function (data, status) {
         resultsEl.innerHTML = "";
-        var SVC = iframe.contentWindow.kakao.maps.services.Status;
-        if (status === SVC.ERROR) {
-          resultsEl.innerHTML =
-            '<div class="result-item" style="line-height:1.6">' +
-            '<div class="result-name">⚠️ API 키 오류</div>' +
-            '<div class="result-addr">현재 도메인이 허용 목록에 없습니다.</div>' +
-            '<div class="result-addr"><a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 Web 도메인에 추가하세요:</div>' +
-            '<div class="result-addr"><code style="background:#f5f5f5;padding:1px 6px;border-radius:3px">' + location.origin + "</code></div></div>";
+        if (_apiDomainError) {
+          resultsEl.innerHTML = _domainErrorHtml;
           resultsEl.style.display = "block";
           return;
         }
-        if (status !== SVC.OK || !data.length) {
+        var SVC = iframe.contentWindow.kakao.maps.services.Status;
+        if (status !== SVC.OK || !data || !data.length) {
           resultsEl.innerHTML = '<div class="result-item"><span class="result-addr">검색 결과가 없습니다.</span></div>';
           resultsEl.style.display = "block";
           return;
