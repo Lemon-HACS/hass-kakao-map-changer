@@ -116,7 +116,7 @@ class KakaoMapPanel extends HTMLElement {
       center: new K.LatLng(lat, lng),
       level: 3,
     });
-    map.addControl(new K.MapTypeControl(), K.ControlPosition.TOPRIGHT);
+    map.addControl(new K.MapTypeControl(), K.ControlPosition.BOTTOMLEFT);
     map.addControl(new K.ZoomControl(), K.ControlPosition.RIGHT);
 
     // 교통 정보 토글
