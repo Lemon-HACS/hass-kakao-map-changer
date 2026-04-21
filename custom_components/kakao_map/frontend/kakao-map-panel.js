@@ -9,10 +9,19 @@ class KakaoMapPanel extends HTMLElement {
     this._zoneLabels = new Map();
   }
 
+  connectedCallback() {
+    this._connected = true;
+    this._tryInit();
+  }
+
   set panel(panel) {
     this._panel = panel;
     this._apiKey = panel.config.api_key;
-    if (!this._iframe) this._init();
+    this._tryInit();
+  }
+
+  _tryInit() {
+    if (this._apiKey && this._connected && !this._iframe) this._init();
   }
 
   set hass(hass) {
@@ -48,7 +57,13 @@ class KakaoMapPanel extends HTMLElement {
     this.appendChild(iframe);
     this._iframe = iframe;
 
-    // iframe 내부에 클린한 HTML 작성 (scoped registry 간섭 없음)
+    // iframe이 ready될 때까지 대기
+    if (!iframe.contentDocument || !iframe.contentDocument.body) {
+      await new Promise((r) =>
+        iframe.addEventListener("load", r, { once: true })
+      );
+    }
+
     const doc = iframe.contentDocument;
     doc.open();
     doc.write(
