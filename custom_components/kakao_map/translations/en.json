@@ -1,0 +1,16 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Kakao Map Setup",
+        "description": "Enter the JavaScript API key from the Kakao Developers site.",
+        "data": {
+          "api_key": "JavaScript API Key"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Already configured."
+    }
+  }
+}
