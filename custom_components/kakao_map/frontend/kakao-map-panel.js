@@ -54,25 +54,22 @@ class KakaoMapPanel extends HTMLElement {
 
     const iframe = document.createElement("iframe");
     iframe.style.cssText = "width:100%;height:100%;border:none;";
+    iframe.srcdoc =
+      '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+      '<base href="' +
+      location.origin +
+      '">' +
+      "<style>*{margin:0;padding:0}html,body,#map{width:100%;height:100%}</style>" +
+      '</head><body><div id="map"></div></body></html>';
     this.appendChild(iframe);
     this._iframe = iframe;
 
-    // iframe이 ready될 때까지 대기
-    if (!iframe.contentDocument || !iframe.contentDocument.body) {
-      await new Promise((r) =>
-        iframe.addEventListener("load", r, { once: true })
-      );
-    }
+    // srcdoc 로드 완료 대기
+    await new Promise((r) =>
+      iframe.addEventListener("load", r, { once: true })
+    );
 
     const doc = iframe.contentDocument;
-    doc.open();
-    doc.write(
-      '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-        '<base href="' + location.origin + '">' +
-        "<style>*{margin:0;padding:0}html,body,#map{width:100%;height:100%}</style>" +
-        '</head><body><div id="map"></div></body></html>'
-    );
-    doc.close();
 
     // iframe 내부에서 Kakao SDK 로드
     await new Promise((resolve, reject) => {

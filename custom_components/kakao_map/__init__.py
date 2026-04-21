@@ -16,8 +16,9 @@ from homeassistant.components.http import StaticPathConfig
 from .const import DOMAIN, CONF_API_KEY
 
 FRONTEND_URL = "/kakao_map_static"
-PANEL_JS = f"{FRONTEND_URL}/kakao-map-panel.js"
-OVERRIDE_JS = f"{FRONTEND_URL}/kakao-map-override.js"
+VERSION = "1.0.1"
+PANEL_JS = f"{FRONTEND_URL}/kakao-map-panel.js?v={VERSION}"
+OVERRIDE_JS = f"{FRONTEND_URL}/kakao-map-override.js?v={VERSION}"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
