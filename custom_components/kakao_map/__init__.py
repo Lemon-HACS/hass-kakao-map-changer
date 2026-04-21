@@ -8,17 +8,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.components.frontend import (
     async_register_built_in_panel,
     async_remove_panel,
-    add_extra_js_url,
-    remove_extra_js_url,
 )
 from homeassistant.components.http import StaticPathConfig
 
 from .const import DOMAIN, CONF_API_KEY
 
 FRONTEND_URL = "/kakao_map_static"
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 PANEL_JS = f"{FRONTEND_URL}/kakao-map-panel.js?v={VERSION}"
-OVERRIDE_JS = f"{FRONTEND_URL}/kakao-map-override.js?v={VERSION}"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -50,14 +47,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         update=True,
     )
 
-    add_extra_js_url(hass, OVERRIDE_JS)
     hass.data[DOMAIN] = {"api_key": api_key}
-
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    remove_extra_js_url(hass, OVERRIDE_JS)
     async_remove_panel(hass, "map", warn_if_unknown=False)
 
     async_register_built_in_panel(

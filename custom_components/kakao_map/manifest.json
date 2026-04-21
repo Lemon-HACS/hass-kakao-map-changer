@@ -1,7 +1,7 @@
 {
   "domain": "kakao_map",
   "name": "Kakao Map",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "codeowners": ["@LemonDouble"],
   "config_flow": true,
   "requirements": [],
