@@ -5,8 +5,10 @@ class KakaoMapPanel extends HTMLElement {
     this._markers = new Map();
     this._entityLabels = new Map();
     this._circles = new Map();
+    this._zoneMarkers = new Map();
     this._zoneLabels = new Map();
     this._initialized = false;
+    this._mapReady = false;
   }
 
   set panel(panel) {
@@ -18,7 +20,7 @@ class KakaoMapPanel extends HTMLElement {
   set hass(hass) {
     const prev = this._hass;
     this._hass = hass;
-    if (this._map && (!prev || this._hasChanges(prev, hass))) {
+    if (this._mapReady && (!prev || this._hasChanges(prev, hass))) {
       this._updateMap();
     }
   }
@@ -60,7 +62,7 @@ class KakaoMapPanel extends HTMLElement {
 
     this._map = new kakao.maps.Map(container, {
       center: new kakao.maps.LatLng(lat, lng),
-      level: 5,
+      level: 3,
     });
 
     this._map.addControl(
@@ -72,9 +74,21 @@ class KakaoMapPanel extends HTMLElement {
       kakao.maps.ControlPosition.RIGHT
     );
 
-    new ResizeObserver(() => this._map && this._map.relayout()).observe(
-      container
-    );
+    new ResizeObserver(() => {
+      if (this._map) {
+        this._map.relayout();
+      }
+    }).observe(container);
+
+    this._mapReady = true;
+
+    // 초기 렌더 후 relayout으로 확실히 그리기
+    setTimeout(() => {
+      if (this._map) {
+        this._map.relayout();
+        if (this._hass) this._updateMap();
+      }
+    }, 100);
 
     if (this._hass) this._updateMap();
   }
@@ -96,7 +110,7 @@ class KakaoMapPanel extends HTMLElement {
 
     const states = this._hass.states;
     const bounds = new kakao.maps.LatLngBounds();
-    let hasEntity = false;
+    let hasContent = false;
     const activeTrackers = new Set();
     const activeZones = new Set();
 
@@ -107,10 +121,14 @@ class KakaoMapPanel extends HTMLElement {
       if (a.latitude == null || a.longitude == null) continue;
 
       activeZones.add(id);
+      hasContent = true;
       const center = new kakao.maps.LatLng(a.latitude, a.longitude);
+      bounds.extend(center);
+
       const isHome = id === "zone.home";
       const color = isHome ? "#FF6B35" : "#448aff";
 
+      // Circle
       let circle = this._circles.get(id);
       if (circle) {
         circle.setPosition(center);
@@ -130,17 +148,30 @@ class KakaoMapPanel extends HTMLElement {
         this._circles.set(id, circle);
       }
 
+      // Zone marker
+      let zoneMarker = this._zoneMarkers.get(id);
+      if (zoneMarker) {
+        zoneMarker.setPosition(center);
+      } else {
+        zoneMarker = new kakao.maps.Marker({
+          position: center,
+          map: this._map,
+        });
+        this._zoneMarkers.set(id, zoneMarker);
+      }
+
+      // Zone label
       const name = a.friendly_name || id.split(".")[1];
       let label = this._zoneLabels.get(id);
       if (!label) {
         const el = this._makeEl(
-          `background:${color};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;white-space:nowrap;pointer-events:none;`
+          `background:${color};color:#fff;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;`
         );
         el.textContent = name;
         label = new kakao.maps.CustomOverlay({
           position: center,
           content: el,
-          yAnchor: 0.5,
+          yAnchor: -0.3,
           map: this._map,
         });
         label._el = el;
@@ -159,7 +190,7 @@ class KakaoMapPanel extends HTMLElement {
       if (a.latitude == null || a.longitude == null) continue;
 
       activeTrackers.add(id);
-      hasEntity = true;
+      hasContent = true;
       const pos = new kakao.maps.LatLng(a.latitude, a.longitude);
       bounds.extend(pos);
 
@@ -185,7 +216,7 @@ class KakaoMapPanel extends HTMLElement {
       let nameLabel = this._entityLabels.get(id);
       if (!nameLabel) {
         const el = this._makeEl(
-          "background:#fff;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:none;margin-top:4px;"
+          "background:#fff;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:none;"
         );
         el.textContent = name;
         nameLabel = new kakao.maps.CustomOverlay({
@@ -206,9 +237,13 @@ class KakaoMapPanel extends HTMLElement {
     this._removeStale(this._markers, activeTrackers);
     this._removeStale(this._entityLabels, activeTrackers);
     this._removeStale(this._circles, activeZones);
+    this._removeStale(this._zoneMarkers, activeZones);
     this._removeStale(this._zoneLabels, activeZones);
 
-    if (hasEntity) this._map.setBounds(bounds);
+    // Zone과 entity 모두 포함하여 bounds 설정
+    if (hasContent) {
+      this._map.setBounds(bounds);
+    }
   }
 
   _removeStale(map, activeSet) {
@@ -238,7 +273,7 @@ class KakaoMapPanel extends HTMLElement {
       wrap.style.textAlign = "center";
       wrap.style.lineHeight = "40px";
       wrap.style.fontSize = "20px";
-      wrap.textContent = "📍";
+      wrap.textContent = "\u{1F4CD}";
     };
     wrap.appendChild(img);
     return wrap;
