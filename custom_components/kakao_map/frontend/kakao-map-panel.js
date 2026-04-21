@@ -150,7 +150,18 @@ class KakaoMapPanel extends HTMLElement {
       if (!query) return;
       ps.keywordSearch(query, function (data, status) {
         resultsEl.innerHTML = "";
-        if (status !== iframe.contentWindow.kakao.maps.services.Status.OK || !data.length) {
+        var SVC = iframe.contentWindow.kakao.maps.services.Status;
+        if (status === SVC.ERROR) {
+          resultsEl.innerHTML =
+            '<div class="result-item" style="line-height:1.6">' +
+            '<div class="result-name">⚠️ API 키 오류</div>' +
+            '<div class="result-addr">현재 도메인이 허용 목록에 없습니다.</div>' +
+            '<div class="result-addr"><a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 Web 도메인에 추가하세요:</div>' +
+            '<div class="result-addr"><code style="background:#f5f5f5;padding:1px 6px;border-radius:3px">' + location.origin + "</code></div></div>";
+          resultsEl.style.display = "block";
+          return;
+        }
+        if (status !== SVC.OK || !data.length) {
           resultsEl.innerHTML = '<div class="result-item"><span class="result-addr">검색 결과가 없습니다.</span></div>';
           resultsEl.style.display = "block";
           return;
