@@ -14,8 +14,8 @@ Home Assistant의 기본 Leaflet 지도를 [카카오맵](https://map.kakao.com)
 
 ### HACS (권장)
 
-1. HACS > 통합 구성요소 > 우측 상단 메뉴 > 사용자 정의 저장소
-2. URL: `https://github.com/Lemon-HACS/hass-kakao-map-changer`, 카테고리: `통합 구성요소`
+1. HACS > 우측 상단 점 세 개 메뉴 > Custom repositories
+2. URL: `https://github.com/Lemon-HACS/hass-kakao-map-changer`, 카테고리: `Integration`
 3. "Kakao Map" 설치 후 Home Assistant 재시작
 
 ### 수동 설치
