@@ -26,6 +26,9 @@ class KakaoMapPanel extends HTMLElement {
     this._entityLabels = new Map();
     this._circles = new Map();
     this._zoneLabels = new Map();
+    this._hiddenEntities = new Set();
+    this._userInteracted = false;
+    this._lastProgrammaticBounds = 0;
   }
 
   connectedCallback() {
@@ -46,8 +49,37 @@ class KakaoMapPanel extends HTMLElement {
   set hass(hass) {
     var prev = this._hass;
     this._hass = hass;
+    if (!this._registryInit && hass) {
+      this._registryInit = true;
+      this._loadRegistry();
+      try {
+        hass.connection.subscribeEvents(
+          () => this._loadRegistry(),
+          "entity_registry_updated"
+        );
+      } catch (e) {
+        console.warn("[kakao-map] registry event subscribe failed:", e);
+      }
+    }
     if (this._ready && (!prev || this._hasChanges(prev, hass))) {
       this._updateMap();
+    }
+  }
+
+  async _loadRegistry() {
+    if (!this._hass) return;
+    try {
+      var entries = await this._hass.callWS({
+        type: "config/entity_registry/list",
+      });
+      this._hiddenEntities = new Set(
+        entries
+          .filter((e) => e.hidden_by || e.disabled_by)
+          .map((e) => e.entity_id)
+      );
+      if (this._ready) this._updateMap();
+    } catch (e) {
+      console.warn("[kakao-map] entity registry load failed:", e);
     }
   }
 
@@ -211,6 +243,16 @@ class KakaoMapPanel extends HTMLElement {
     this._ready = true;
 
     var self = this;
+    K.event.addListener(map, "dragend", function () {
+      self._userInteracted = true;
+    });
+    K.event.addListener(map, "zoom_changed", function () {
+      // setBounds로 인한 zoom_changed는 무시 (200ms 가드)
+      if (Date.now() - self._lastProgrammaticBounds > 200) {
+        self._userInteracted = true;
+      }
+    });
+
     new ResizeObserver(function () {
       if (self._map) self._map.relayout();
     }).observe(iframe);
@@ -236,8 +278,10 @@ class KakaoMapPanel extends HTMLElement {
     var activeZones = new Set();
 
     // person 엔티티의 source인 device_tracker는 중복이므로 건너뛰기
+    // 단, person이 숨겨진 경우엔 source를 가리지 않아 device_tracker가 보이도록 함
     var personSources = new Set();
     for (var [pid, pstate] of Object.entries(states)) {
+      if (this._hiddenEntities.has(pid)) continue;
       if (pid.startsWith("person.") && pstate.attributes.source) {
         personSources.add(pstate.attributes.source);
       }
@@ -246,6 +290,7 @@ class KakaoMapPanel extends HTMLElement {
     // --- Zones (circle + label only, no pin marker) ---
     for (var [id, state] of Object.entries(states)) {
       if (!id.startsWith("zone.")) continue;
+      if (this._hiddenEntities.has(id)) continue;
       var a = state.attributes;
       if (a.latitude == null || a.longitude == null) continue;
 
@@ -310,6 +355,7 @@ class KakaoMapPanel extends HTMLElement {
     // --- Trackers (person + device_tracker) ---
     for (var [id2, state2] of Object.entries(states)) {
       if (personSources.has(id2)) continue;
+      if (this._hiddenEntities.has(id2)) continue;
       if (!id2.startsWith("device_tracker.") && !id2.startsWith("person."))
         continue;
       var a2 = state2.attributes;
@@ -392,7 +438,11 @@ class KakaoMapPanel extends HTMLElement {
     this._removeStale(this._circles, activeZones);
     this._removeStale(this._zoneLabels, activeZones);
 
-    if (hasContent) map.setBounds(bounds);
+    // 사용자가 한 번이라도 드래그/줌 했으면 자동 fitBounds 비활성
+    if (hasContent && !this._userInteracted) {
+      this._lastProgrammaticBounds = Date.now();
+      map.setBounds(bounds);
+    }
   }
 
   _removeStale(map, activeSet) {
