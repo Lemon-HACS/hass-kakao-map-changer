@@ -292,6 +292,8 @@ class KakaoMapPanel extends HTMLElement {
       if (!id.startsWith("zone.")) continue;
       if (this._hiddenEntities.has(id)) continue;
       var a = state.attributes;
+      // passive zone은 자동화 추적용이라 지도엔 노출하지 않음 (HA 기본 Leaflet 동작과 동일)
+      if (a.passive) continue;
       if (a.latitude == null || a.longitude == null) continue;
 
       activeZones.add(id);
