@@ -141,8 +141,9 @@ class KakaoMapPanel extends HTMLElement {
     }
 
     var K = iframe.contentWindow.kakao.maps;
-    var lat = this._hass?.config?.latitude || 37.5665;
-    var lng = this._hass?.config?.longitude || 126.978;
+    var homeZone = this._hass?.states?.["zone.home"];
+    var lat = homeZone?.attributes?.latitude || this._hass?.config?.latitude || 37.5665;
+    var lng = homeZone?.attributes?.longitude || this._hass?.config?.longitude || 126.978;
 
     var map = new K.Map(doc.getElementById("map"), {
       center: new K.LatLng(lat, lng),
@@ -364,9 +365,7 @@ class KakaoMapPanel extends HTMLElement {
       if (a2.latitude == null || a2.longitude == null) continue;
 
       activeTrackers.add(id2);
-      hasContent = true;
       var pos = new K.LatLng(a2.latitude, a2.longitude);
-      bounds.extend(pos);
 
       var marker = this._markers.get(id2);
       if (marker) {
