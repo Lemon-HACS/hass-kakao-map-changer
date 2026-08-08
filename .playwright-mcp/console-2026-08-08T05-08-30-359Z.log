@@ -1,0 +1,9 @@
+[      68ms] [LOG] [안A dvh-calc] HA 2026.8 inset=0px              {"iframe":720,"top":0,"viewport":720,"overflow":4} @ http://127.0.0.1:8931/compat.html:28
+[      69ms] [LOG] [안A dvh-calc] HA 2026.8 inset=30px             {"iframe":660,"top":30,"viewport":720,"overflow":0} @ http://127.0.0.1:8931/compat.html:28
+[      69ms] [LOG] [안A dvh-calc] HA 2026.7 inset=0px              {"iframe":720,"top":0,"viewport":720,"overflow":4} @ http://127.0.0.1:8931/compat.html:28
+[      69ms] [LOG] [안A dvh-calc] HA 2026.7 inset=30px             {"iframe":660,"top":0,"viewport":720,"overflow":0} @ http://127.0.0.1:8931/compat.html:28
+[      69ms] [LOG] [안B 부모높이100%] HA 2026.8 inset=0px              {"iframe":720,"top":0,"viewport":720,"overflow":4} @ http://127.0.0.1:8931/compat.html:28
+[      70ms] [LOG] [안B 부모높이100%] HA 2026.8 inset=30px             {"iframe":660,"top":30,"viewport":720,"overflow":0} @ http://127.0.0.1:8931/compat.html:28
+[      70ms] [LOG] [안B 부모높이100%] HA 2026.7 inset=0px              {"iframe":720,"top":0,"viewport":720,"overflow":4} @ http://127.0.0.1:8931/compat.html:28
+[      70ms] [LOG] [안B 부모높이100%] HA 2026.7 inset=30px             {"iframe":720,"top":0,"viewport":720,"overflow":4} @ http://127.0.0.1:8931/compat.html:28
+[      77ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8931/favicon.ico:0

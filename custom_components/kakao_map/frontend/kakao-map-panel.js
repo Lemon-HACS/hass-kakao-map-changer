@@ -102,6 +102,9 @@ class KakaoMapPanel extends HTMLElement {
 
   async _init() {
     this.style.cssText = "display:block;width:100%;height:100%;";
+    // HA 2026.8부터 ha-panel-custom이 display:block이 되어 높이 기준점이 됐는데
+    // 자체 높이가 없어 iframe이 기본 150px로 줄어든다 (frontend#53127)
+    if (this.parentElement) this.parentElement.style.height = "100%";
 
     var iframe = document.createElement("iframe");
     iframe.style.cssText = "width:100%;height:100%;border:none;";
