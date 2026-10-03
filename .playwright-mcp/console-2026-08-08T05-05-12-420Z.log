@@ -1,4 +1,0 @@
-[      60ms] [LOG] 현재 코드(height:100%) + HA safe-area 적용 {"panel":154,"iframe":150,"viewport":720,"pageScrollOverflow":0} @ http://127.0.0.1:8931/fix.html:28
-[      61ms] [LOG] 수정B(height:100dvh) + HA safe-area 적용(노치 30px) {"panel":720,"iframe":720,"viewport":720,"pageScrollOverflow":60} @ http://127.0.0.1:8931/fix.html:28
-[      61ms] [LOG] 수정A+B(handle_safe_area:true + 100dvh) {"panel":720,"iframe":720,"viewport":720,"pageScrollOverflow":4} @ http://127.0.0.1:8931/fix.html:28
-[      61ms] [LOG] 수정A만(handle_safe_area:true, height:100% 유지) {"panel":720,"iframe":720,"viewport":720,"pageScrollOverflow":4} @ http://127.0.0.1:8931/fix.html:28

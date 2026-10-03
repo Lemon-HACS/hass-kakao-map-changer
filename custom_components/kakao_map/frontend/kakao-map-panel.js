@@ -61,6 +61,7 @@ class KakaoMapPanel extends HTMLElement {
         console.warn("[kakao-map] registry event subscribe failed:", e);
       }
     }
+    this._updateMenuButton();
     if (this._ready && (!prev || this._hasChanges(prev, hass))) {
       this._updateMap();
     }
@@ -85,6 +86,16 @@ class KakaoMapPanel extends HTMLElement {
 
   set narrow(v) {
     this._narrow = v;
+    this._updateMenuButton();
+  }
+
+  // 좁은 화면에선 HA가 사이드바를 숨기고 각 패널이 메뉴 버튼을 띄우는 구조라,
+  // 전체 화면 iframe인 이 패널은 직접 버튼을 띄워야 사이드바를 열 수 있다
+  _updateMenuButton() {
+    if (!this._menuBtn) return;
+    this._menuBtn.hidden = !(
+      this._narrow || this._hass?.dockedSidebar === "always_hidden"
+    );
   }
 
   _hasChanges(prev, next) {
@@ -116,6 +127,14 @@ class KakaoMapPanel extends HTMLElement {
 
     var doc = iframe.contentDocument;
     var apiKey = this._apiKey;
+
+    this._menuBtn = doc.getElementById("menu-btn");
+    this._menuBtn.addEventListener("click", () => {
+      this.dispatchEvent(
+        new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true })
+      );
+    });
+    this._updateMenuButton();
 
     try {
       await new Promise((resolve, reject) => {

@@ -1,3 +1,0 @@
-[      55ms] [LOG] 수정D: calc(100dvh - insets) / 데스크톱(inset 0) {"panel":720,"iframe":720,"viewport":720,"overflow":4} @ http://127.0.0.1:8931/fix2.html:26
-[      56ms] [LOG] 수정D: calc(100dvh - insets) / 모바일 노치(inset 30px) {"panel":660,"iframe":660,"viewport":720,"overflow":0} @ http://127.0.0.1:8931/fix2.html:26
-[      56ms] [LOG] 수정B: 100dvh / 모바일 노치(inset 30px) {"panel":720,"iframe":720,"viewport":720,"overflow":60} @ http://127.0.0.1:8931/fix2.html:26
