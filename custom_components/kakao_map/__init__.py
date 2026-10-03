@@ -14,8 +14,9 @@ from homeassistant.components.http import StaticPathConfig
 from .const import DOMAIN, CONF_API_KEY
 
 FRONTEND_URL = "/kakao_map_static"
-VERSION = "1.2.14"
+VERSION = "1.2.15"
 PANEL_JS = f"{FRONTEND_URL}/kakao-map-panel.js?v={VERSION}"
+PANEL_INNER_HTML = f"{FRONTEND_URL}/kakao-map-inner.html?v={VERSION}"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -42,6 +43,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "js_url": PANEL_JS,
             },
             "api_key": api_key,
+            "inner_html_url": PANEL_INNER_HTML,
         },
         require_admin=False,
         update=True,

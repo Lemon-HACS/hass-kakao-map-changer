@@ -39,6 +39,7 @@ class KakaoMapPanel extends HTMLElement {
   set panel(panel) {
     this._panel = panel;
     this._apiKey = panel.config.api_key;
+    this._innerHtmlUrl = panel.config.inner_html_url;
     this._tryInit();
   }
 
@@ -119,7 +120,7 @@ class KakaoMapPanel extends HTMLElement {
 
     var iframe = document.createElement("iframe");
     iframe.style.cssText = "width:100%;height:100%;border:none;";
-    iframe.src = "/kakao_map_static/kakao-map-inner.html";
+    iframe.src = this._innerHtmlUrl;
     this.appendChild(iframe);
     this._iframe = iframe;
 
