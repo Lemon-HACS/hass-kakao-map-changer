@@ -16,7 +16,7 @@ from homeassistant.components.http import HomeAssistantView
 
 from .const import DOMAIN, CONF_API_KEY
 
-VERSION = "1.3.0-beta.2"
+VERSION = "1.3.0"
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 FRONTEND_FILES = frozenset(os.listdir(FRONTEND_DIR))
 # 버전을 경로에 넣어 업데이트 시 브라우저 캐시를 우회한다. 모듈끼리 상대 경로로 import하므로 쿼리 대신 경로를 쓴다
