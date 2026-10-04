@@ -113,15 +113,23 @@ export class KakaoMapView {
         doc.head.appendChild(s);
       });
     } catch (e) {
+      // 카카오는 SDK 오류 응답에 CORS 헤더를 붙이지 않아 브라우저에서 실패 원인을 알 수 없으므로,
+      // 가능한 원인을 모두 안내한다
       doc.getElementById("map").innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;font-family:sans-serif;color:#333">' +
-        '<div style="font-size:48px">🔑</div>' +
-        '<div style="font-size:18px;font-weight:700">카카오맵 API 키 오류</div>' +
-        '<div style="font-size:14px;color:#666;text-align:center;max-width:400px;line-height:1.6">' +
-        '<a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 도메인을 등록하세요:<br>' +
-        "내 앱 → 플랫폼 → Web → <b>JavaScript SDK 도메인</b><br>" +
-        '추가할 주소: <code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;font-size:13px">' +
-        location.origin + "</code></div></div>";
+        '<div style="display:flex;height:100%;overflow:auto;padding:16px;font-family:sans-serif;color:#333">' +
+        '<div style="margin:auto;max-width:420px;font-size:14px;line-height:1.6">' +
+        '<div style="font-size:18px;font-weight:700;margin-bottom:8px">🔑 카카오맵을 불러오지 못했습니다</div>' +
+        '<div style="color:#666">' +
+        '<a href="https://developers.kakao.com/console/app" target="_blank" style="color:#4285f4">카카오 개발자 콘솔</a>에서 다음 항목을 확인하세요.</div>' +
+        '<ol style="margin:8px 0 0;padding-left:20px;color:#666">' +
+        "<li><b>카카오맵 사용 설정</b>: 앱 → 제품 설정 → 카카오맵 → 사용 설정의 상태를 <b>ON</b>으로 변경</li>" +
+        "<li><b>도메인 등록</b>: 내 앱 → 플랫폼 → Web → JavaScript SDK 도메인에 다음 주소를 추가<br>" +
+        '<code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;font-size:13px">' +
+        location.origin + "</code></li>" +
+        "<li><b>API 키</b>: 통합 구성요소에 REST API 키가 아닌 <b>JavaScript 키</b>를 입력했는지 확인</li>" +
+        "</ol></div></div>";
+      doc.getElementById("search-box").hidden = true;
+      doc.getElementById("traffic-btn").hidden = true;
       return;
     }
     if (this._destroyed) return;
